@@ -56,18 +56,24 @@ public class Factory implements Runnable {
     @Override
     public void run() {
 
-        while (!Thread.interrupted ( )) {
-            Random rand = new Random ( );
+        Random rand;
+        try {
             try {
-                Thread.sleep (450 + rand.nextInt (100));
-                rand = new Random ( );
-                if (storage.getNbr ( ) < 40) {
-                    storage.setGo (false);
+                semaphore.acquire ( );
+            } catch (InterruptedException e) {
+                e.printStackTrace ( );
+            }
 
+            while (!Thread.interrupted ( )) {
+                storage.setGo (true);
+                rand = new Random ( );
+
+                if (storage.getNbr ( ) < 40) {
+                    System.out.println (Thread.currentThread ( ));
                     int i = rand.nextInt (18);
                     storage.add (foodItem[i]);
 
-storage.setGo (false);
+
 
                     if (controller.isT1 ( )) {
                         controller.factoryResting (2);
@@ -75,23 +81,26 @@ storage.setGo (false);
                     if (controller.isT2 ( )) {
                         controller.factoryResting (4);
                     }
-                } else if (storage.getNbr ( ) == 40) {
+                } else if (storage.getNbr ( ) >= 40) {
 
 
                     if (controller.isT1 ( )) {
-                            controller.factoryResting (1);
-                }
+                        controller.factoryResting (1);
+                    }
                     if (controller.isT2 ( )) {
                         controller.factoryResting (3);
                     }
-                    storage.setGo (true);
-               semaphore.acquire ();
-                        }
+
+                }
+                Thread.sleep (1000 + rand.nextInt (300));
+                semaphore.release ( );
             }
 
-                 catch(InterruptedException e) {
-                break; }
+        } catch (InterruptedException e) {
+
+
         }
 
     }
+
 }

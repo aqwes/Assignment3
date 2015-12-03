@@ -22,8 +22,8 @@ public class Controller {
      */
     public Controller(GUISemaphore gui) {
         this.gui = gui;
-        semaphore = new Semaphore (2, true);
-        storage = new Storage (semaphore, this);
+        semaphore = new Semaphore (1);
+        storage = new Storage (this);
 
     }
 
@@ -52,7 +52,7 @@ public class Controller {
     Start the delivery thread
      */
     public void startDeliver() {
-        Thread thread3 = new Thread (new Truck (storage, this, semaphore));
+        Thread thread3 = new Thread (new Truck (storage, this));
         thread3.start ( );
     }
     /*
@@ -138,6 +138,7 @@ public class Controller {
      */
     public void truckDone() {
         gui.empty ( );
+        storage.setGo (true);
 
 
     }

@@ -3,7 +3,6 @@ package logic;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
-import java.util.concurrent.Semaphore;
 
 /**
  * Created by Dennis on 15-11-26.
@@ -11,14 +10,11 @@ import java.util.concurrent.Semaphore;
  */
 public class Storage {
     private final Controller controller;
-    private final Semaphore semaphore;
     private final Queue<FoodItem> foodItems = new LinkedList<> ( );
     private boolean go;
-    private int sum;
     private int nbr;
 
-    public Storage(Semaphore semaphore, Controller controller) {
-        this.semaphore = semaphore;
+    public Storage(Controller controller) {
         this.controller = controller;
 
 
@@ -34,27 +30,19 @@ public class Storage {
         setBufferStatus (nbr);
 
         Random rand = new Random ( );
-        sum = rand.nextInt (35 - 30) + 15;
 
     }
 
     /*
      Remove food items to the que
      */
-    public FoodItem remove() {
-
+    public void remove() {
         nbr--;
         setBufferStatus (nbr);
+        controller.work (1);
+        foodItems.remove ( );
+        setGo (true);
 
-
-        if (nbr == sum) {
-            semaphore.release ( );
-            setGo (false);
-            controller.work (2);
-
-        }
-
-        return foodItems.remove ( );
     }
 
     /*
@@ -98,4 +86,6 @@ public class Storage {
 
 
 }
+
+
 
