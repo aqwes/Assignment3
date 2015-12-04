@@ -15,7 +15,6 @@ public class Truck implements Runnable {
     public Truck(Storage storage, Controller controller) {
         this.storage = storage;
         this.controller = controller;
-
     }
 
     /*
@@ -23,8 +22,6 @@ public class Truck implements Runnable {
      */
     public void run() {
         while (!Thread.interrupted ( )) {
-
-            if (storage.getGo ( )) {
                 try {
                     Thread.sleep (300);
                     if (storage.isEmpty ( )) {
@@ -32,14 +29,13 @@ public class Truck implements Runnable {
                     } else if (!storage.isEmpty ( )) {
 
                         checkMax ( );
-
                     }
                 } catch (InterruptedException e) {
                     break;
                 }
             }
         }
-    }
+
 
     /*
      Runs until the truck is fully loaded.
@@ -58,11 +54,9 @@ public class Truck implements Runnable {
             setVolume ( );
             setProductName ( );
             setNbrOfItems ( );
-
             storage.remove ( );
         }
         if (maxVolume >= 30 || maxWeight >= 30 || nbr >= 20) {
-            storage.setGo (false);
             pickUp ( );
         }
     }

@@ -1,8 +1,10 @@
 package logic;
 
+import sun.awt.Mutex;
+
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Random;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by Dennis on 15-11-26.
@@ -10,13 +12,19 @@ import java.util.Random;
  */
 public class Storage {
     private final Controller controller;
+
     private final Queue<FoodItem> foodItems = new LinkedList<> ( );
     private boolean go;
     private int nbr;
+    private Semaphore rDsemaphore;
+    private Semaphore wRsemaphore;
+    private Mutex lock;
 
     public Storage(Controller controller) {
         this.controller = controller;
-
+        wRsemaphore = new Semaphore (40);
+        rDsemaphore = new Semaphore (0);
+        lock = new Mutex ( );
 
     }
 
@@ -24,24 +32,38 @@ public class Storage {
      Add food items to the que
      */
     public void add(FoodItem foodItem) {
+        try {
+            wRsemaphore.acquire ( );
+        } catch (InterruptedException e) {
+            e.printStackTrace ( );
+        }
 
-        foodItems.add (foodItem);
-        nbr++;
-        setBufferStatus (nbr);
+        synchronized (lock) {
+            foodItems.add (foodItem);
+            nbr++;
+            setBufferStatus (nbr);
 
-        Random rand = new Random ( );
-
+        }
+        rDsemaphore.release ( );
     }
 
     /*
      Remove food items to the que
      */
     public void remove() {
-        nbr--;
-        setBufferStatus (nbr);
-        controller.work (1);
-        foodItems.remove ( );
-        setGo (true);
+        try {
+            rDsemaphore.acquire ( );
+        } catch (InterruptedException e) {
+            e.printStackTrace ( );
+        }
+        synchronized (lock) {
+            nbr--;
+            setBufferStatus (nbr);
+            controller.work (1);
+            foodItems.remove ( );
+        }
+
+        wRsemaphore.release ( );
 
     }
 

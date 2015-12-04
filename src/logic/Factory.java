@@ -1,7 +1,6 @@
 package logic;
 
 import java.util.Random;
-import java.util.concurrent.Semaphore;
 
 /**
  * Created by Dennis on 15-11-26.
@@ -9,16 +8,15 @@ import java.util.concurrent.Semaphore;
  */
 public class Factory implements Runnable {
     private final Storage storage;
-    private final Semaphore semaphore;
     private final Controller controller;
     private FoodItem[] foodItem;
+    private Random rand;
+    private boolean runnning;
 
-    public Factory(Storage storage, Semaphore semaphore, Controller controller) {
+    public Factory(Storage storage, Controller controller) {
         this.storage = storage;
-        this.semaphore = semaphore;
         this.controller = controller;
         initFooditems ( );
-
 
     }
 
@@ -53,36 +51,27 @@ public class Factory implements Runnable {
      *This method make the factory running and produce items
      */
 
+
     @Override
     public void run() {
 
-        Random rand;
         try {
-            try {
-                semaphore.acquire ( );
-            } catch (InterruptedException e) {
-                e.printStackTrace ( );
-            }
-
-            while (!Thread.interrupted ( )) {
-                storage.setGo (true);
+            while (runnning) {
                 rand = new Random ( );
+                Thread.sleep (500 + rand.nextInt (300));
 
-                if (storage.getNbr ( ) < 40) {
-                    System.out.println (Thread.currentThread ( ));
-                    int i = rand.nextInt (18);
-                    storage.add (foodItem[i]);
+                System.out.println (Thread.currentThread ( ));
+                int i = rand.nextInt (18);
+                storage.add (foodItem[i]);
 
+                if (controller.isT1 ( )) {
+                    controller.factoryResting (2);
+                }
+                if (controller.isT2 ( )) {
+                    controller.factoryResting (4);
 
-
-                    if (controller.isT1 ( )) {
-                        controller.factoryResting (2);
-                    }
-                    if (controller.isT2 ( )) {
-                        controller.factoryResting (4);
-                    }
-                } else if (storage.getNbr ( ) >= 40) {
-
+                }
+                if (storage.getNbr ( ) >= 40) {
 
                     if (controller.isT1 ( )) {
                         controller.factoryResting (1);
@@ -90,16 +79,23 @@ public class Factory implements Runnable {
                     if (controller.isT2 ( )) {
                         controller.factoryResting (3);
                     }
-
                 }
-                Thread.sleep (1000 + rand.nextInt (300));
-                semaphore.release ( );
             }
 
         } catch (InterruptedException e) {
 
 
         }
+    }
+
+    public boolean isRunnning() {
+        return runnning;
+    }
+
+    public void setRunnning(boolean runnning) {
+        this.runnning = runnning;
+
+
 
     }
 

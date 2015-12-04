@@ -2,37 +2,36 @@ package logic;
 
 import guis.GUISemaphore;
 
-import java.util.concurrent.Semaphore;
-
 /**
  * Created by Dennis on 15-11-27.
  * This class starts all the thread and handles some communication to the Gui from the other classes.
  */
 public class Controller {
     private final GUISemaphore gui;
-    private final Semaphore semaphore;
     private final Storage storage;
     private Thread thread1;
     private Thread thread2;
     private boolean t1 = false;
     private boolean t2 = false;
+    private Factory factory1;
+    private Factory factory2;
 
     /*
      Constructor that receives a gui item and makes a new Semaphore and a storage
      */
     public Controller(GUISemaphore gui) {
         this.gui = gui;
-        semaphore = new Semaphore (1);
         storage = new Storage (this);
-
+        
     }
 
     /*
     Start the producer thread A
      */
     public void startProducerA() {
-        thread1 = new Thread (new Factory (storage, semaphore, this));
+        thread1 = new Thread (factory1 = new Factory (storage, this));
         thread1.start ( );
+        factory1.setRunnning (true);
         t1 = true;
         factoryResting (2);
     }
@@ -41,8 +40,9 @@ public class Controller {
     Start the producer thread B
      */
     public void startProducerB() {
-        thread2 = new Thread (new Factory (storage, semaphore, this));
+        thread2 = new Thread (factory2 = new Factory (storage, this));
         thread2.start ( );
+        factory2.setRunnning (true);
         t2 = true;
         factoryResting (4);
 
@@ -60,6 +60,7 @@ public class Controller {
     */
 
     public void stopProducerA() {
+        factory1.setRunnning (false);
         thread1.interrupt ( );
         factoryResting (1);
         t1 = false;
@@ -69,7 +70,7 @@ public class Controller {
     Start the producer thread B
      */
     public void stopProducerB() {
-        thread2.interrupt ( );
+        factory2.setRunnning (false);
         factoryResting (3);
         t2 = false;
     }
@@ -138,7 +139,6 @@ public class Controller {
      */
     public void truckDone() {
         gui.empty ( );
-        storage.setGo (true);
 
 
     }
